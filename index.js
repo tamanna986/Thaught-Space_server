@@ -33,6 +33,8 @@ async function run() {
     // await client.connect();
     const db = client.db('thaughtSpace');
     const userCollection = client.db('thaughtSpace').collection('users')
+    const tagCollection = client.db('thaughtSpace').collection('tags')
+    const announcementCollection = client.db('thaughtSpace').collection('announcements')
 
     // jwt related api
     app.post('/jwt', async (req, res) => {
@@ -74,22 +76,24 @@ async function run() {
             const result = await userCollection.find().toArray();
             res.send(result);
           });
+
+             // tag related api
+        app.get('/tags', async (req, res) => {
+            const result = await tagCollection.find().toArray();
+            res.send(result);
+          });
+      
+             // announcement related api
+        app.get('/announcement', async (req, res) => {
+            const result = await announcementCollection.find().toArray();
+            res.send(result);
+          });
       
 
 
-    // user collection api
-   
-    app.post('/users', async (req, res) => {
-        const user = req.body;
-        const query = { email: user.email }
-        const existingUser = await userCollection.findOne(query);
-        if (existingUser) {
-          return res.send({ message: 'user already exists', insertedId: null })
-        }
-        const result = await userCollection.insertOne(user);
-        res.send(result);
-   
-    });
+ 
+
+
 
     app.get('/users/admin/:email', verifyToken, async (req, res) => {
         const email = req.params.email;
@@ -107,7 +111,33 @@ async function run() {
         res.send({ admin });
       })
 
+         // user collection api
+   
+    app.post('/users', async (req, res) => {
+        const user = req.body;
+        const query = { email: user.email }
+        const existingUser = await userCollection.findOne(query);
+        if (existingUser) {
+          return res.send({ message: 'user already exists', insertedId: null })
+        }
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+   
+    });
 
+    // for posting tags
+    app.post('/tags',verifyToken, verifyAdmin, async (req, res) => {
+        const tag = req.body;
+        const result = await tagCollection.insertOne(tag);
+        res.send(result);
+      });
+
+    //   for posting announcement
+    app.post('/announcement', verifyToken, verifyAdmin, async (req, res) => {
+        const announcement = req.body;
+        const result = await announcementCollection.insertOne(announcement);
+        res.send(result);
+      });
 
     // to make  user an admin
     app.patch('/users/admin/:id',verifyToken, verifyAdmin,   async (req, res) => {
