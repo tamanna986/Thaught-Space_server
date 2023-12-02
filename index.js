@@ -75,7 +75,7 @@ async function run() {
       }
 
         // users related api
-        app.get('/users',verifyToken, verifyAdmin,  async (req, res) => {
+        app.get('/users',  async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
           });
@@ -172,9 +172,35 @@ async function run() {
             });
       
             res.send({
-              clientSecret: paymentIntent.client_secret
+              clientSecret: paymentIntent.client_secret,
+              amount: amount
             })
           });
+
+          // Add a new endpoint to handle updating user status
+app.post('/update-user-status', async (req, res) => {
+    const { email, amount } = req.body;
+
+    try {
+        // Assuming your userCollection is where user details are stored
+        const filter = { email: email };
+        const updateDoc = {
+            $set: {
+                status: 'golden' // Change status to 'golden' upon successful payment
+            }
+        };
+
+        // Update the user's status to 'golden' based on their email
+        const result = await userCollection.updateOne(filter, updateDoc);
+
+        // Sending a success response to the client
+        res.send({ success: true, updatedUser: result });
+    } catch (error) {
+        // Sending an error response if something goes wrong
+        res.status(500).send({ success: false, error: error.message });
+    }
+});
+          
       
 
     // Send a ping to confirm a successful connection
