@@ -38,6 +38,7 @@ async function run() {
     const userCollection = client.db('thaughtSpace').collection('users')
     const tagCollection = client.db('thaughtSpace').collection('tags')
     const announcementCollection = client.db('thaughtSpace').collection('announcements')
+    const postCollection = client.db('thaughtSpace').collection('posts')
 
     // jwt related api
     app.post('/jwt', async (req, res) => {
@@ -92,6 +93,12 @@ async function run() {
             res.send(result);
           });
       
+             // posts related api
+        app.get('/posts', async (req, res) => {
+            const result = await postCollection.find().toArray();
+            res.send(result);
+          });
+      
 
 
  
@@ -139,6 +146,13 @@ async function run() {
     app.post('/announcement', verifyToken, verifyAdmin, async (req, res) => {
         const announcement = req.body;
         const result = await announcementCollection.insertOne(announcement);
+        res.send(result);
+      });
+
+    //   for posting posts
+    app.post('/posts', verifyToken,  async (req, res) => {
+        const post = req.body;
+        const result = await postCollection.insertOne( post);
         res.send(result);
       });
 
