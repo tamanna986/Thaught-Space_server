@@ -95,6 +95,13 @@ async function run() {
       
              // posts related api
         app.get('/posts', async (req, res) => {
+            const {category} = req.query
+            console.log(category)
+            if(category){
+                const result = await postCollection.find({category}).toArray();
+                return res.send(result);
+            }
+        
             const result = await postCollection.find().toArray();
             res.send(result);
           });
@@ -214,8 +221,17 @@ app.post('/update-user-status', async (req, res) => {
         res.status(500).send({ success: false, error: error.message });
     }
 });
-          
-      
+//   for posting id wise post      //   
+
+  
+
+// for getting single post
+app.get('/posts/:id',  async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await postCollection.findOne(query);
+    res.send(result);
+  })
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
@@ -232,6 +248,9 @@ run().catch(console.dir);
 app.get('/', (req,res) =>{
     res.send('thaughts are generating')
 })
+
+
+
 
 app.listen(port, () =>{
     console.log(`thaught space is running on serve ${port}`);
