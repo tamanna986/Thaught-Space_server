@@ -39,6 +39,8 @@ async function run() {
     const tagCollection = client.db('thaughtSpace').collection('tags')
     const announcementCollection = client.db('thaughtSpace').collection('announcements')
     const postCollection = client.db('thaughtSpace').collection('posts')
+    const commentCollection = client.db('thaughtSpace').collection('comments')
+    const voteCollection = client.db('thaughtSpace').collection('votes');
 
     // jwt related api
     app.post('/jwt', async (req, res) => {
@@ -108,8 +110,19 @@ async function run() {
       
 
 
- 
-
+       // comments related api
+       app.get('/comments', async (req, res) => {
+        const result = await commentCollection.find().toArray();
+        res.send(result);
+      });
+      
+       // votes related api
+// Get votes for a specific post
+       // comments related api
+       app.get('/votes', async (req, res) => {
+        const result = await voteCollection.find().toArray();
+        res.send(result);
+      });
 
 
     app.get('/users/admin/:email', verifyToken, async (req, res) => {
@@ -162,6 +175,16 @@ async function run() {
         const result = await postCollection.insertOne( post);
         res.send(result);
       });
+    //   for posting comments
+    app.post('/comments', verifyToken,  async (req, res) => {
+        const comment = req.body;
+        const result = await commentCollection.insertOne( comment);
+        res.send(result);
+      });
+
+
+
+      
 
     // to make  user an admin
     app.patch('/users/admin/:id',verifyToken, verifyAdmin,   async (req, res) => {
@@ -221,7 +244,42 @@ app.post('/update-user-status', async (req, res) => {
         res.status(500).send({ success: false, error: error.message });
     }
 });
-//   for posting id wise post      //   
+
+
+// Increment upVote for a post
+app.patch('/posts/upvote/:postId', verifyToken, async (req, res) => {
+    const postId = req.params.postId;
+    const filter = { postId: postId };
+    const result = await voteCollection.updateOne(
+        filter,
+        [
+            { $set: { upVote: { $ifNull: ['$upVote', 0] }, downVote: { $ifNull: ['$downVote', 0] } } },
+            { $set: { upVote: { $add: ['$upVote', 1] } } },
+            { $set: { voteDifference: { $subtract: ['$upVote', '$downVote'] } } }
+        ],
+        { upsert: true }
+    );
+    res.send(result);
+});
+
+// Increment downVote for a post
+app.patch('/posts/downvote/:postId', verifyToken, async (req, res) => {
+    const postId = req.params.postId;
+    const filter = { postId: postId };
+    const result = await voteCollection.updateOne(
+        filter,
+        [
+            { $set: { upVote: { $ifNull: ['$upVote', 0] }, downVote: { $ifNull: ['$downVote', 0] } } },
+            { $set: { downVote: { $add: ['$downVote', 1] } } },
+            { $set: { voteDifference: { $subtract: ['$upVote', '$downVote'] } } }
+        ],
+        { upsert: true }
+    );
+    res.send(result);
+});
+
+
+
 
   
 
