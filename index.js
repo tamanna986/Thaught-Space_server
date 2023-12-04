@@ -246,37 +246,42 @@ app.post('/update-user-status', async (req, res) => {
 });
 
 
+
+// 2nd try
+
 // Increment upVote for a post
 app.patch('/posts/upvote/:postId', verifyToken, async (req, res) => {
     const postId = req.params.postId;
-    const filter = { postId: postId };
-    const result = await voteCollection.updateOne(
-        filter,
-        [
-            { $set: { upVote: { $ifNull: ['$upVote', 0] }, downVote: { $ifNull: ['$downVote', 0] } } },
-            { $set: { upVote: { $add: ['$upVote', 1] } } },
-            { $set: { voteDifference: { $subtract: ['$upVote', '$downVote'] } } }
-        ],
-        { upsert: true }
-    );
-    res.send(result);
+    // console.log("line 286", postId);
+    
+
+        const result = await postCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $inc: { upVote: 1 } }, 
+        );
+    //  console.log(result, "line 293")
+        
+        res.send(result); 
+  
 });
 
 // Increment downVote for a post
 app.patch('/posts/downvote/:postId', verifyToken, async (req, res) => {
     const postId = req.params.postId;
-    const filter = { postId: postId };
-    const result = await voteCollection.updateOne(
-        filter,
-        [
-            { $set: { upVote: { $ifNull: ['$upVote', 0] }, downVote: { $ifNull: ['$downVote', 0] } } },
-            { $set: { downVote: { $add: ['$downVote', 1] } } },
-            { $set: { voteDifference: { $subtract: ['$upVote', '$downVote'] } } }
-        ],
-        { upsert: true }
-    );
-    res.send(result);
+    console.log("down vote", postId);
+  
+        const result = await postCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $inc: { downVote: 1 } }, 
+            { returnOriginal: false } 
+        );
+
+      
+           console.log(result, "line 293")
+        res.send(result); 
+  
 });
+
 
 
 
