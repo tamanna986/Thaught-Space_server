@@ -283,7 +283,12 @@ app.patch('/posts/downvote/:postId', verifyToken, async (req, res) => {
 });
 
 
-
+app.delete('/posts/:id', verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await postCollection.deleteOne(query);
+    res.send(result);
+  })
 
 
   
@@ -295,6 +300,24 @@ app.get('/posts/:id',  async (req, res) => {
     const result = await postCollection.findOne(query);
     res.send(result);
   })
+
+  app.get('/comments/:id', async (req, res) => {
+    const postId = req.params.id;
+    const query = { postId: postId }; // Assuming 'postId' is the field in comments collection related to the post
+    
+    try {
+      const result = await commentCollection.find(query).toArray();
+      
+      if (!result || result.length === 0) {
+        return res.status(404).send("No comments found for this post ID");
+      }
+  
+      res.send(result);
+    } catch (error) {
+      res.status(500).send("Error fetching comments");
+    }
+  });
+  
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
@@ -311,6 +334,7 @@ run().catch(console.dir);
 app.get('/', (req,res) =>{
     res.send('thaughts are generating')
 })
+
 
 
 
